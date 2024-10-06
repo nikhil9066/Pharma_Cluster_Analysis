@@ -97,33 +97,22 @@ ggplot(pharma_data, aes(x = Exchange)) +
   labs(title = "Firms by Stock Exchange", x = "Exchange", y = "Count") +
   theme_minimal()
 
-# K-Means Clustering
+### K-Means Clustering ###
 # Determine optimal number of clusters using the Elbow method
 wss <- (nrow(scaled_data)-1)*sum(apply(scaled_data, 2, var))
-for (i in 2:10) wss[i] <- sum(kmeans(scaled_data, centers=i)$tot.withinss)
+for (i in 2:10) {
+  wss[i] <- sum(kmeans(scaled_data, centers=i)$tot.withinss)
+}
 
 # Plot the Elbow method graph
 plot(1:10, wss, type="b", xlab="Number of Clusters", ylab="Within groups sum of squares")
 
-# Perform K-means clustering
+# Perform K-means clustering (3 clusters based on the elbow plot)
 set.seed(123)  # For reproducibility
-kmeans_result <- kmeans(scaled_data, centers = 3)  # Adjust 'centers' based on elbow plot
+kmeans_result <- kmeans(scaled_data, centers = 3)
 
 # Add the cluster membership to the original dataset
 pharma_data$cluster <- kmeans_result$cluster
 
 # Check the cluster assignments
 table(pharma_data$cluster)
-
-# Cluster Interpretation
-# Calculate means for each cluster
-cluster_means <- aggregate(. ~ cluster, data = pharma_data[, c("cluster", "Market_Cap", "Beta", "PE_Ratio", "ROE", "ROA", "Asset_Turnover", "Leverage", "Rev_Growth", "Net_Profit_Margin")], mean, na.rm = TRUE)
-
-# Display cluster means for interpretation
-print(cluster_means)
-
-# Visualize the clusters using ggplot2
-ggplot(pharma_data, aes(x = Market_Cap, y = Rev_Growth, color = factor(cluster))) +
-  geom_point(size = 3) +
-  labs(title = "Cluster Plot of Pharmaceutical Firms", x = "Market Capitalization", y = "Revenue Growth", color = "Cluster") +
-  theme_minimal()
